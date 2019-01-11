@@ -1,4 +1,3 @@
-#if 1
 #define GLEW_STATIC
 #include <GL\glew.h>
 #include <GLFW\glfw3.h>
@@ -9,7 +8,10 @@
 #include <glm\gtc\matrix_transform.hpp>
 #include <glm\gtc\type_ptr.hpp>
 
+#include "shader.h"
 using namespace std;
+
+#define FILE_PATH "../resource/"
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode) {
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
@@ -43,69 +45,9 @@ int main()
 	glfwGetFramebufferSize(window, &width, &height);
 	glViewport(0, 0, width, height);
 
-	const GLchar *vertexShaderSource = " \n"
-		"#version 330 core  \n"
-		"layout (location = 0) in vec3 position; \n"
-		"layout (location = 1) in vec3 color; \n"
-		"layout (location = 2) in vec2 texCoord; \n"
-		"out vec3 ourColor;\n"
-		"out vec2 TexCoord; \n"
-		"uniform mat4 transform; \n"
-		"void main(){ \n"
-		"	gl_Position = transform * vec4(position.x, position.y, position.z, 1.0); \n"
-		"	ourColor = color;\n "
-		"	TexCoord = vec2(texCoord.x, 1 - texCoord.y);\n"
-		"}\0";
-	GLuint vertexShader;
-	vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	glCompileShader(vertexShader);
-	GLint success;
-	GLchar infoLog[512];
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-	if (!success) {
-		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		cout << "ERRO::SHADER::VERTEX::COMPLATION_FAILED -----> " << infoLog << endl;
-	}
-#if 0
-	const GLchar *fragmentShaderSource = "#version 330 core \n"
-		"out vec4 color; \n"
-		"void main(){   \n"
-		"	color = vec4(1.0f, 0.5f, 0.2f, 1.0f); \n"
-		"}\0";
-#else
-	const GLchar *fragmentShaderSource = "#version 330 core \n"
-		"in vec3 ourColor; \n"
-		"in vec2 TexCoord; \n"
-		"out vec4 color; \n"
-		"uniform sampler2D ourTexture1; \n"
-		"uniform sampler2D ourTexture2; \n"
-		"void main(){   \n"
-		"	color = mix(texture(ourTexture1, TexCoord), texture(ourTexture2, TexCoord), 0.2); \n"
-		"}\0";
-#endif
-	GLuint fragmentShader;
-	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-	glCompileShader(fragmentShader);
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-	if (!success) {
-		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-		cout << "ERRO::SHADER::FRAGMENT::COMPLATION_FAILED -----> " << infoLog << endl;
-	}
-
-	GLuint shaderProgram;
-	shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-	if (!success) {
-		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-		cout << "ERRO::SHADER::PROGRAM::LINK_FAILED -----> " << infoLog << endl;
-	}
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
+	std::string vertexPath = std::string(FILE_PATH) + "shader.vs";
+	std::string fragmentPath = std::string(FILE_PATH) + "shader.frag";
+	Shader ourShader(vertexPath, fragmentPath);
 
 	GLfloat vertices[] = {
 	/*        position             color           texture coorde   */
@@ -184,15 +126,15 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		//激活着色器
-		glUseProgram(shaderProgram);
+		ourShader.Use();
 
 		//绑定纹理
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture);
-		glUniform1i(glGetUniformLocation(shaderProgram, "ourTexture1"), 0);
+		glUniform1i(glGetUniformLocation(ourShader.getProgram(), "ourTexture1"), 0);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
-		glUniform1i(glGetUniformLocation(shaderProgram, "ourTexture2"), 1);
+		glUniform1i(glGetUniformLocation(ourShader.getProgram(), "ourTexture2"), 1);
 
 
 		//更新选择矩阵
@@ -201,7 +143,7 @@ int main()
 		trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
 		trans = glm::rotate(trans, (GLfloat)glm::radians(glfwGetTime() * 50.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
-		GLuint transformLoc = glGetUniformLocation(shaderProgram, "transform");
+		GLuint transformLoc = glGetUniformLocation(ourShader.getProgram(), "transform");
 		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
 #if 0
 		//更新uniform颜色
@@ -230,4 +172,3 @@ int main()
 	glfwTerminate();
 	return 0;
 }
-#endif
