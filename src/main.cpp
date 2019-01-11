@@ -1,5 +1,4 @@
-#define GLEW_STATIC
-#include <GL\glew.h>
+#include "shader.h"
 #include <GLFW\glfw3.h>
 #include <SOIL\SOIL.h>
 #include <iostream>
@@ -8,7 +7,6 @@
 #include <glm\gtc\matrix_transform.hpp>
 #include <glm\gtc\type_ptr.hpp>
 
-#include "shader.h"
 using namespace std;
 
 #define FILE_PATH "../resource/"
@@ -87,7 +85,8 @@ int main()
 
 	//纹理生成
 	int pngWidth, pngHeight;
-	unsigned char *image = SOIL_load_image("F:/Test/OpenGL/OpenGL/container.jpg", &pngWidth, &pngHeight, 0, SOIL_LOAD_RGB);
+	std::string image1Path = std::string(FILE_PATH) + "container.jpg";
+	unsigned char *image = SOIL_load_image(image1Path.c_str(), &pngWidth, &pngHeight, 0, SOIL_LOAD_RGB);
 	GLuint texture;
 	glGenTextures(1, &texture);
 
@@ -104,7 +103,8 @@ int main()
 	SOIL_free_image_data(image);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	image = SOIL_load_image("F:/Test/OpenGL/OpenGL/awesomeface.png", &pngWidth, &pngHeight, 0, SOIL_LOAD_RGB);
+	std::string image2Path = std::string(FILE_PATH) + "awesomeface.png";
+	image = SOIL_load_image(image2Path.c_str() , &pngWidth, &pngHeight, 0, SOIL_LOAD_RGB);
 	GLuint texture2;
 	glGenTextures(1, &texture2);
 	glBindTexture(GL_TEXTURE_2D, texture2);
@@ -136,7 +136,6 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, texture2);
 		glUniform1i(glGetUniformLocation(ourShader.getProgram(), "ourTexture2"), 1);
 
-
 		//更新选择矩阵
 		//坐标变换
 		glm::mat4 trans(1);
@@ -145,23 +144,9 @@ int main()
 
 		GLuint transformLoc = glGetUniformLocation(ourShader.getProgram(), "transform");
 		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
-#if 0
-		//更新uniform颜色
-		GLfloat timeValue = glfwGetTime();
-		GLfloat greenValue = (sin(timeValue) / 2.0) + 0.5;
-		GLuint vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
-		glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
-#endif
-#if 0 
-		//绘制三角形
-		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
-		glBindVertexArray(0);
-#else
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
-#endif
 
 		//交换缓冲
 		glfwSwapBuffers(window);

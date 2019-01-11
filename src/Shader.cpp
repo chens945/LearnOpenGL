@@ -1,5 +1,4 @@
 #include "Shader.h"
-#include "GL\glew.h"
 
 #include <fstream>
 #include <sstream>
