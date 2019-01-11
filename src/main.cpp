@@ -138,12 +138,21 @@ int main()
 
 		//更新选择矩阵
 		//坐标变换
-		glm::mat4 trans(1);
-		trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
-		trans = glm::rotate(trans, (GLfloat)glm::radians(glfwGetTime() * 50.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+		glm::mat4 model(1);
+		glm::mat4 view(1);
+		glm::mat4 projection(1);
+		model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -20.0f));
+		projection = glm::perspective(45.0f, (GLfloat)800 / (GLfloat)600, 0.1f, 100.0f);
 
-		GLuint transformLoc = glGetUniformLocation(ourShader.getProgram(), "transform");
-		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+		GLint modelLoc = glGetUniformLocation(ourShader.getProgram(), "model");
+		GLint viewLoc = glGetUniformLocation(ourShader.getProgram(), "view");
+		GLint projLoc = glGetUniformLocation(ourShader.getProgram(), "projection");
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+		//绘制图形
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
