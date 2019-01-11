@@ -11,12 +11,37 @@ using namespace std;
 
 #define FILE_PATH "../resource/"
 
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+bool keys[1024];
+
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode) {
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, GL_TRUE);
 	}
+	else{
+		if (action == GLFW_PRESS) {
+			keys[key] = true;
+		}
+		else if (action == GLFW_RELEASE) {
+			keys[key] = false;
+		}
+	}
 }
 
+void doMovement() {
+	GLfloat cameraSpeed = 0.01f;
+	if (keys[GLFW_KEY_W])
+		cameraPos += cameraSpeed * cameraFront;
+	if (keys[GLFW_KEY_S])
+		cameraPos -= cameraSpeed * cameraFront;
+	if (keys[GLFW_KEY_A])
+		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	if (keys[GLFW_KEY_D])
+		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+}
 
 int main() 
 {
@@ -165,6 +190,7 @@ int main()
 	{
 		//检查窗口事件
 		glfwPollEvents();
+		doMovement();
 		//处理渲染
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -183,10 +209,7 @@ int main()
 		//坐标变换
 		glm::mat4 view(1);
 		glm::mat4 projection(1);
-		GLfloat redius = 10.0f;
-		GLfloat camX = (GLfloat)sin(glfwGetTime()) * redius;
-		GLfloat camZ = (GLfloat)cos(glfwGetTime()) * redius;
-		view = glm::lookAt(glm::vec3(camX, 0.0f, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
+		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 		projection = glm::perspective(45.0f, (GLfloat)800 / (GLfloat)600, 0.1f, 100.0f);
 
 		GLint modelLoc = glGetUniformLocation(ourShader.getProgram(), "model");
